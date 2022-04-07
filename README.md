@@ -1,10 +1,16 @@
 # ingress-nginx-mtls-demo
 
+![](images/ingressnginxcontroller.png)
+
+*image from [Nginx](https://www.nginx.com/blog/announcing-nginx-ingress-controller-for-kubernetes-release-1-6-0/)* 
+
 ## Step 1: Set up and start minikube
 
 First things first, check to see if you have minikube installed and if the version is >= v1.19
 
 ``` minikube version ```
+
+![](images/version.png)
 
 If not installed follow the docs: https://minikube.sigs.k8s.io/docs/start/
 
@@ -14,7 +20,13 @@ to start minikube: ``` minikube start ```
 
 to enable the ingress addon: ``` minikube addons enable ingress ```
 
-after enabling the ingress add on it will show you a message that says:
+if you want to confirm it is enabled run: ```minikube addons list | grep ingress ```
+
+![](images/addons.png)
+
+You will see the green checkmark beside enabled ✅
+
+**after enabling the ingress add on it will show you a message that says:**
 
 please run "minikube tunnel" and your ingress resources would be available at "127.0.0.1".
 
@@ -33,14 +45,16 @@ If you have cloned this repo, then you will have all 3 of these yaml files in yo
 Let's also create a new namespace and switch into it before creating our resources:
 
 create namespace: ``` kubectl create ns https-demo ```
-switch into new namespace: ``` kubectl config set-context --current --namespace=https-demo ```
+switch into new namespace: ``` kubectl config set-context --current --namespace=https-demo ``
 
-
-Then run ``` kubectl apply -f {eachyamlfile.yml} ```
+Then run ``` kubectl apply -f ingress.yml ```
+and two more time for the other 2 yml files.
 
 This command will create each resource for you in your cluster.
 
 At this point you can also start the ```minikube tunnel``` command in a seperate terminal so that your requests will be forwarded to localhost correctly.
+
+![](images/tunnel.png)
 
 ## Step 3: Setting up your self signed CA and server certificate
 
@@ -95,10 +109,11 @@ Let's see what will happen if we try to request our endpoint without passing a c
 
 ``` curl https://localhost/httpstest -k  ```
 
-note: we need to use the -k flag because we are using a self signed certificate for our server and CA meaning curl / browser doesn't trust it. This is fine for our demo purpose but in a real situation you'd never want to us a self signed CA or certificate.
+note: we need to use the -k flag because we are using a self signed certificate for our server and CA meaning curl / browser doesn't trust it. This is fine for our demo purpose but in a real situation you'd never want to use a self signed CA or certificate.
+
+![](images/400.png)
 
 We can see that we are returned a 400 error code that says No required SSL certificate was sent!
-
 
 Perfect, let's fix that by creating a client certificate that is signed by the CA it is expecting.
 
@@ -124,6 +139,7 @@ Now we can re try and see if we can access our resource!
 
 We are passing in our client.crt and client.key with our request and receive a successful output from our application:
 
+![](images/success.png)
 
 We can see that our app is saying Hello, world! It also included the Hostname which is equivalent to the pod that we created with our deployment.
 You can confirm this by running a ``` kubectl get pods ``` command!
